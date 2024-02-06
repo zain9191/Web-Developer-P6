@@ -1,25 +1,37 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
+const cors = require('cors');  
+const mongoose = require('./db');
+const path = require('path');
 
-// Middleware to parse the request body as JSON
+
+// Import MongoDB model and routes
+// const userRoutes = require("./routes/user");
+
+
+app.use(cors());
 app.use(express.json());
 
-// Import  MongoDB model
-const userModel = require('./model');
 
-// Example route using MongoDB
-app.get('/users', async (req, res) => {
-    try {
-        // 'users' collection in MongoDB
-        const users = await userModel.find();
-        res.status(200).json(users);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+const sauceRoutes = require("./routes/sauce")
+const userRoutes = require("./routes/user");
 
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-});
+
+app.use((req, res, next) => {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    next();
+  });
+
+  
+  app.use("/api/sauces", sauceRoutes);
+ 
+  app.use("/api/signup", userRoutes);
+
+  app.use("/images", express.static(path.join(__dirname, "images")));
+
+
+module.exports = app;
