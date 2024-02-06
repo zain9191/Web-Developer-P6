@@ -67,21 +67,33 @@ exports.deleteSauce = (req, res, next) => {
 //************************ modify sauce  *****************************/
 
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ?
-    { 
+    const sauceObject = req.file ? {
         ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
-      
-    Sauce.updateOne({_id: req.params.id}, { ...sauceObject, _id: req.params.id })
-        .then(() => {
-            res.status(201).json({message: 'sauce modified!'});
+
+    delete sauceObject.userId;
+
+    Sauce.findOne({ _id: req.params.id })
+        .then((sauce) => {
+            if (!sauce) {
+                return res.status(404).json({ message: 'Sauce not found' });
+            }
+            if (sauce.userId !== req.auth.userId) {
+                return res.status(401).json({ message: 'Not authorized' });
+            }
+            Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                .then(() => {
+                    res.status(200).json({ message: 'Sauce modified!' });
+                })
+                .catch(error => {
+                    res.status(400).json({ error: error.message });
+                });
         })
         .catch(error => {
-            res.status(400).json({error: error});
+            res.status(400).json({ error: error.message });
         });
 };
-
 
 
 
