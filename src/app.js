@@ -31,7 +31,7 @@ app.use((req, res, next) => {
  
   app.use("/api/signup", userRoutes);
 
-  app.use("/images", express.static(path.join(__dirname, "images")));
+  app.use("/images", express.static(path.join(__dirname, "assets", "images")));
 
 
 module.exports = app;

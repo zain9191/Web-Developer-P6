@@ -25,19 +25,13 @@ exports.getOneSauce = (req, res, next) => {
   //********** add new sauce ****************************************/
 exports.createSauce = (req, res, next) => {
     try {
-        console.log("Trying...");
-
         const sauceObject = JSON.parse(req.body.sauce);
         delete sauceObject._id;
-
+        // delete sauceObject.userId
         const sauce = new Sauce({
             ...sauceObject,
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-
-
         });
-
-
         sauce.save()
             .then(() => {
                 res.status(201).json({ message: 'Sauce added successfully!' });
@@ -52,7 +46,6 @@ exports.createSauce = (req, res, next) => {
                 res.status(400).json({ error: errorMessage });
             });
     } catch (parseError) {
-        console.log("00000000000000000000000000000")
 
         res.status(400).json({ error: 'Invalid sauce data format.' });
     }
@@ -88,3 +81,8 @@ exports.modifySauce = (req, res, next) => {
             res.status(400).json({error: error});
         });
 };
+
+
+
+
+
