@@ -13,19 +13,14 @@ const storage = multer.diskStorage({
     filename: (req, file, callback) => {
         const name = file.originalname.split(' ').join('_');
         const extension = MIME_TYPES[file.mimetype];
-        console.log("extension is " +extension)
-        name.split(".")
-        name.split(extension)
-        console.log("name now is "+name)
+        const nameWithoutExtension = name.split('.').slice(0, -1).join('.');
         const timestamp = Date.now();
-    
-        console.log("name is " + name);
-    
-        const generatedFilename = `${name}_${timestamp}.${extension}`;
+        const generatedFilename = `${nameWithoutExtension}_${timestamp}.${extension}`;
         console.log('Generated Filename:', generatedFilename);
+        callback(null, generatedFilename);
     
         // Correctly generate the filename with a single extension
-        callback(null, `${name.replace(/\.[^/.]+$/, "")}_${timestamp}.${extension}`);
+        // callback(null, `${name.replace(/\.[^/.]+$/, "")}_${timestamp}.${extension}`);
     }
 });
 
