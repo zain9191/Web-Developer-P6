@@ -6,10 +6,6 @@ const mongoose = require('./db');
 const path = require('path');
 
 
-// Import MongoDB model and routes
-// const userRoutes = require("./routes/user");
-
-
 app.use(cors());
 app.use(express.json());
 
@@ -26,7 +22,6 @@ app.use((req, res, next) => {
     next();
   });
 
-  
   app.use("/api/sauces", sauceRoutes);
  
   app.use("/api/signup", userRoutes);
