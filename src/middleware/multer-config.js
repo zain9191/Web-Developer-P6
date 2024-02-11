@@ -19,8 +19,6 @@ const storage = multer.diskStorage({
         console.log('Generated Filename:', generatedFilename);
         callback(null, generatedFilename);
     
-        // Correctly generate the filename with a single extension
-        // callback(null, `${name.replace(/\.[^/.]+$/, "")}_${timestamp}.${extension}`);
     }
 });
 

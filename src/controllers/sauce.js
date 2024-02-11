@@ -49,7 +49,7 @@ exports.createSauce = (req, res, next) => {
             });
     } catch (parseError) {
         console.log("00000000000000000000000000000")
-
+        
         res.status(400).json({ error: 'Invalid sauce data format.' });
     }
 };
@@ -127,7 +127,7 @@ exports.toggleLikeSauce = (req, res, next) => {
 
             switch (likeValue) {
                 case 1: // Like
-                    // Unlike if already liked 
+                console.log("_______________ in like  ______________")
                     if (sauce.usersLiked.includes(userId)) {
                         update = { $inc: { likes: -1 }, $pull: { usersLiked: userId } };
                     } else {
@@ -139,7 +139,8 @@ exports.toggleLikeSauce = (req, res, next) => {
                     }
                     break;
                 case -1: // Dislike
-                    // Remove dislike if already disliked or switch to dislike from like
+                console.log("_______________ in dislike  ______________")
+
                     if (sauce.usersDisliked.includes(userId)) {
                         update = { $inc: { dislikes: -1 }, $pull: { usersDisliked: userId } };
                     } else {
@@ -151,18 +152,32 @@ exports.toggleLikeSauce = (req, res, next) => {
                     }
                     break;
                 case 0: // remove any like or dislike
+                console.log("_______________ in remove like  ______________")
+
                     update = {
                         $inc: { likes: sauce.usersLiked.includes(userId) ? -1 : 0, dislikes: sauce.usersDisliked.includes(userId) ? -1 : 0 },
                         $pull: { usersLiked: userId, usersDisliked: userId }
                     };
                     break;
                 default:
-                    return res.status(400).json({ message: 'Invalid like value' });
+                    throw new Error('Invalid like value');
             }
 
-            //  update
+            // Update the sauce
             return Sauce.updateOne({ _id: sauceId }, update);
         })
-        .then(() => res.status(200).json({ message: 'Sauce like/dislike updated successfully' }))
-        .catch(error => res.status(500).json({ error: error.message }));
+        .then(() => {
+            // Send success response
+            res.status(200).json({ message: 'Sauce like/dislike updated successfully' });
+        })
+        .catch(error => {
+            console.log(error)
+
+            // Handle errors
+            if (error instanceof Error) {
+                return res.status(400).json({ message: error.message });
+            }
+            // If it's not a known error type, send a generic error response
+            res.status(500).json({ error: 'Internal server error' });
+        });
 };
