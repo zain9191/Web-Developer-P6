@@ -26,21 +26,30 @@ exports.getOneSauce = (req, res, next) => {
 
 
   //********** add new sauce ****************************************/
-exports.createSauce = (req, res, next) => {
+  exports.createSauce = async (req, res, next) => {
     try {
         const sauceObject = JSON.parse(req.body.sauce);
         delete sauceObject._id;
+
+        // Check if the sauce already exists in the database
+        const existingSauce = await Sauce.findOne({ name: sauceObject.name });
+        if (existingSauce) {
+            return res.status(400).json({ message: 'Sauce already exists. Please modify the existing one.' });
+        }
+
+        // If the sauce doesn't exist, create and save it
         const sauce = new Sauce({
             ...sauceObject,
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         });
-        sauce.save()
-            .then(() => {
-                res.status(201).json({ message: 'Sauce added successfully!' })
-            })
-            .catch((error) => next({ status: 400, message: 'Bad Request' }))
-    } catch (parseError) {        
-        res.status(400).json({ error: 'Invalid sauce data format.' });
+        await sauce.save();
+        
+        res.status(201).json({ message: 'Sauce added successfully!' });
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            return res.status(400).json({ error: 'Invalid sauce data format.' });
+        }
+        next({ status: 400, message: 'Bad Request' });
     }
 };
 
