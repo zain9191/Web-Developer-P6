@@ -8,79 +8,67 @@ const fs = require ('fs');
   exports.getAllSauces = (req, res, next) => {
     Sauce.find()
    .then((sauce) => {res.status(200).json(sauce);})
-   .catch((error) => { res.status(400).json({ error: error});});
+   .catch((error) => next({ status: 500, message: 'Internal Server Error' }));
+
  }
 
 //***************** get one at a time ***********************************/
 exports.getOneSauce = (req, res, next) => {
-    Sauce.findOne({_id: req.params.id})
-    .then((sauce) => {res.status(200).json(sauce);})
-    .catch((error) => {res.status(404).json({error: error});
-  });
-  }
-
+    Sauce.findOne({ _id: req.params.id })
+        .then((sauce) => {
+            if (!sauce) {
+                return res.status(404).json({ error: 'Sauce not found' });
+            }
+            res.status(200).json(sauce);
+        })
+        .catch((error) => next({ status: 500, message: 'Internal Server Error' }));
+};
 
 
   //********** add new sauce ****************************************/
 exports.createSauce = (req, res, next) => {
     try {
-        console.log("Trying...");
         const sauceObject = JSON.parse(req.body.sauce);
         delete sauceObject._id;
         const sauce = new Sauce({
             ...sauceObject,
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         });
-
         sauce.save()
             .then(() => {
-                res.status(201).json({ message: 'Sauce added successfully!' });
-
+                res.status(201).json({ message: 'Sauce added successfully!' })
             })
-            .catch((error) => {
-
-
-                let errorMessage = 'Failed to add sauce.';
-                if (error && error.message) {
-
-                    errorMessage = error.message;
-                }
-                res.status(400).json({ error: errorMessage });
-            });
-    } catch (parseError) {
-        console.log("00000000000000000000000000000")
-        
+            .catch((error) => next({ status: 400, message: 'Bad Request' }))
+    } catch (parseError) {        
         res.status(400).json({ error: 'Invalid sauce data format.' });
     }
 };
+
 //******************* delete sauce ****************************************/
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
-      .then(sauce => {
-        const filename = sauce.imageUrl.split('/images/')[1];
-
-
-        fs.unlink(`/images/${filename}`, () => {
-          Sauce.deleteOne({ _id: req.params.id })
-            .then(() => res.status(200).json({ message: 'sauce supprimé !'}))
-            .catch(error => res.status(400).json({ error }));
-        });
-        
-      })
-      .catch(error => res.status(500).json({ error }));
+        .then((sauce) => {
+            if (!sauce) {
+                return res.status(404).json({ error: 'Sauce not found' });
+            }
+            const filename = sauce.imageUrl.split('/images/')[1];
+            fs.unlink(`./src/assets/images/${filename}`, () => {
+                Sauce.deleteOne({ _id: req.params.id })
+                    .then(() => res.status(200).json({ message: 'Sauce deleted successfully' }))
+                    .catch((error) => next({ status: 500, message: 'Internal Server Error' }));
+            });
+        })
+        .catch((error) => next({ status: 500, message: 'Internal Server Error' }));
 };
-
 //************************ modify sauce  *****************************/
 
 exports.modifySauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
             let oldImageUrl = null;
-
             if (sauce) {
                 oldImageUrl = sauce.imageUrl;
             }
-
             const sauceObject = req.file ? {
                 ...JSON.parse(req.body.sauce),
                 imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
@@ -115,19 +103,16 @@ exports.modifySauce = (req, res, next) => {
 exports.toggleLikeSauce = (req, res, next) => {
     const userId = req.body.userId; 
     const sauceId = req.params.id;
-    const likeValue = req.body.like; // This is a number: 1, -1, or 0
+    const likeValue = req.body.like; 
 
     Sauce.findById(sauceId)
         .then(sauce => {
             if (!sauce) {
                 return res.status(404).json({ message: 'Sauce not found' });
             }
-
             let update = {};
-
             switch (likeValue) {
                 case 1: // Like
-                console.log("_______________ in like  ______________")
                     if (sauce.usersLiked.includes(userId)) {
                         update = { $inc: { likes: -1 }, $pull: { usersLiked: userId } };
                     } else {
@@ -139,8 +124,6 @@ exports.toggleLikeSauce = (req, res, next) => {
                     }
                     break;
                 case -1: // Dislike
-                console.log("_______________ in dislike  ______________")
-
                     if (sauce.usersDisliked.includes(userId)) {
                         update = { $inc: { dislikes: -1 }, $pull: { usersDisliked: userId } };
                     } else {
@@ -152,8 +135,6 @@ exports.toggleLikeSauce = (req, res, next) => {
                     }
                     break;
                 case 0: // remove any like or dislike
-                console.log("_______________ in remove like  ______________")
-
                     update = {
                         $inc: { likes: sauce.usersLiked.includes(userId) ? -1 : 0, dislikes: sauce.usersDisliked.includes(userId) ? -1 : 0 },
                         $pull: { usersLiked: userId, usersDisliked: userId }
@@ -162,7 +143,6 @@ exports.toggleLikeSauce = (req, res, next) => {
                 default:
                     throw new Error('Invalid like value');
             }
-
             // Update the sauce
             return Sauce.updateOne({ _id: sauceId }, update);
         })
@@ -171,8 +151,6 @@ exports.toggleLikeSauce = (req, res, next) => {
             res.status(200).json({ message: 'Sauce like/dislike updated successfully' });
         })
         .catch(error => {
-            console.log(error)
-
             // Handle errors
             if (error instanceof Error) {
                 return res.status(400).json({ message: error.message });
