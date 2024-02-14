@@ -1,13 +1,18 @@
+const app = require('./src/app'); // Import the app
 const express = require('express');
-const app = express();
 const port = 3000;
+const userCtrl = require("./src/controllers/user")
+const helmet = require('helmet'); 
 
-// Middleware to parse the request body as JSON
+
 app.use(express.json());
+app.use(helmet());
 
-app.get('/', (req, res) => {
-    res.status(200).json({ message: "Eall is good" });
-});
+
+app.post("/api/auth/signup",userCtrl.signup)
+app.post("/api/auth/login",userCtrl.login)
+
+
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

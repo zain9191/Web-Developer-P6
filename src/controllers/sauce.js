@@ -2,8 +2,6 @@ const Sauce = require('../models/sauce');
 const fs = require ('fs');
 
 
-
-
   //************* get all suaces ***********************************/
   exports.getAllSauces = (req, res, next) => {
     Sauce.find()

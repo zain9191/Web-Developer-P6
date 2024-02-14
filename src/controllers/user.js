@@ -4,8 +4,6 @@ const { json } = require("express");
 const User = require("../models/user");
 
 exports.signup = (req, res, next) => {
-    console.log("____SIGNUP_______")
-    // console.log(req.body)
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
@@ -21,8 +19,6 @@ exports.signup = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-    console.log("_________loged in _________")
-
     User.findOne({ email: req.body.email })
         .then(user => {
             if (!user) {
