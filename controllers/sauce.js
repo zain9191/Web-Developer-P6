@@ -68,6 +68,7 @@ exports.getOneSauce = (req, res, next) => {
 };
 
 //******************* delete sauce ****************************************/
+
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
         .then((sauce) => {
@@ -77,7 +78,7 @@ exports.deleteSauce = (req, res, next) => {
 
             }
             const filename = sauce.imageUrl.split('/images/')[1];
-            fs.unlink(`./src/assets/images/${filename}`, () => {
+            fs.unlink(`./assets/images/${filename}`, () => {
                 Sauce.deleteOne({ _id: req.params.id })
                     .then(() => res.status(200).json({ message: 'Sauce deleted successfully' }))
                     // 200 OK/ Sauce deleted successfully
@@ -110,7 +111,7 @@ exports.modifySauce = (req, res, next) => {
                     if (req.file && oldImageUrl) {
                         let filename = oldImageUrl.split('/images/')[1]; 
                        
-                        fs.unlink(`src/assets/images/${filename}`, (err) => {
+                        fs.unlink(`./assets/images/${filename}`, (err) => {
                             if (err) {
                                 console.error('Error deleting old image:', err);
                             } else {
@@ -198,3 +199,7 @@ exports.toggleLikeSauce = (req, res, next) => {
 
         });
 };
+
+
+
+
