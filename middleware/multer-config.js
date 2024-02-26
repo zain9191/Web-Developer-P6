@@ -17,8 +17,15 @@ const storage = multer.diskStorage({
         const timestamp = Date.now();
         const generatedFilename = `${nameWithoutExtension}_${timestamp}.${extension}`;
         callback(null, generatedFilename);
-    
     }
 });
 
-module.exports = multer({ storage }).single('image');
+const fileFilter = (req, file, callback) => {
+    if (file.mimetype.startsWith('image/')) {
+        callback(null, true);
+    } else {
+        callback(new Error('Only image files are allowed'));
+    }
+};
+
+module.exports = multer({ storage, fileFilter }).single('image');
